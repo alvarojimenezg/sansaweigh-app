@@ -1,28 +1,31 @@
 package cl.sansaweigh.sansaweighapp.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-@Data
-@Builder
+//@Data
+//@Builder
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "registros_pesajes")
-public class RegistroPesaje {
+public class RegistroPesaje implements Serializable {
 
     @Id
     private String id;
 
-    private Long balanzaId;
+    @NotBlank(message = "Debe ingresar el ID de la balanza")
+    private int balanzaId;
 
+    @NotBlank(message = "Debe ingresar el ID del paquete")
     private String paqueteId;
 
     private Double pesoSansas;
@@ -35,6 +38,5 @@ public class RegistroPesaje {
 
     private LocalDateTime updatedAt;
 
-    @Builder.Default
     private List<String> historialTransiciones = new ArrayList<>();
 }

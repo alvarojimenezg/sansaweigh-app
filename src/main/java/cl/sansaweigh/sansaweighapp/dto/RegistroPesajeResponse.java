@@ -21,7 +21,7 @@ public class RegistroPesajeResponse {
 
     private String id;
 
-    private Long balanzaId;
+    private int balanzaId;
 
     private String paqueteId;
 

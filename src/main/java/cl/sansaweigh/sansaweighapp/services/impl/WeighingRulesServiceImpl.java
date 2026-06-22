@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Service
-public class WeighingRulesServiceImpl implements WeighingRulesService{
+public class WeighingRulesServiceImpl implements WeighingRulesService {
     private static final double CONVERSION_RATIO = 1.337;
 
     @Override
