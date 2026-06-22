@@ -28,5 +28,5 @@ public class CreateRegistroPesajeRequest {
 
     @NotNull(message = "pesoSansas es obligatorio")
     @Positive(message = "pesoSansas debe ser positivo")
-    private Double pesoSansas;
+    private Double pesoKg;
 }
