@@ -3,9 +3,10 @@ package cl.sansaweigh.sansaweighapp.dto;
 import cl.sansaweigh.sansaweighapp.entities.CategoriaPeso;
 import cl.sansaweigh.sansaweighapp.entities.EstadoPesaje;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,8 +14,9 @@ import java.util.List;
 /**
  * Representación de salida de un registro de pesaje hacia el cliente de la API.
  */
-@Data
-@Builder
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegistroPesajeResponse {
