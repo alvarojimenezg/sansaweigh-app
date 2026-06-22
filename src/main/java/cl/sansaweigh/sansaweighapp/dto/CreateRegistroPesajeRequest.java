@@ -4,17 +4,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Datos de entrada para crear un nuevo registro de pesaje.
  * La categoría y el estado no se reciben: los deriva el servicio aplicando
  * las reglas de negocio (clasificación por peso, máquina de estados).
  */
-@Data
-@Builder
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateRegistroPesajeRequest {
