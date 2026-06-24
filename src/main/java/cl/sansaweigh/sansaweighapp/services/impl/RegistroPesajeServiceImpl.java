@@ -6,6 +6,7 @@ import cl.sansaweigh.sansaweighapp.dto.UpdateRegistroPesajeRequest;
 import cl.sansaweigh.sansaweighapp.entities.CategoriaPeso;
 import cl.sansaweigh.sansaweighapp.entities.EstadoPesaje;
 import cl.sansaweigh.sansaweighapp.entities.RegistroPesaje;
+import cl.sansaweigh.sansaweighapp.exceptions.RegistroNoEncontradoException;
 import cl.sansaweigh.sansaweighapp.repositories.RegistroPesajeRepository;
 import cl.sansaweigh.sansaweighapp.services.RegistroPesajeService;
 import cl.sansaweigh.sansaweighapp.services.WeighingRulesService;
@@ -87,7 +88,7 @@ public class RegistroPesajeServiceImpl implements RegistroPesajeService {
     public RegistroPesajeResponse updateEstado(String id, UpdateRegistroPesajeRequest request) {
 
         RegistroPesaje registro = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado con ID: " + id));
+                .orElseThrow(() -> new RegistroNoEncontradoException("Registro no encontrado con ID: " + id));
         
         rulesService.validarTranscursosEstados(registro.getEstado(), request.getNuevoEstado());
 
