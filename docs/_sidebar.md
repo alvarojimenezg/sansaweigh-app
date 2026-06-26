@@ -1,0 +1,5 @@
+- [Inicio](/)
+- [Arquitectura](arquitectura.md)
+- [Reglas de negocio](reglas-negocio.md)
+- [API REST](api.md)
+- [Configuración y ejecución](setup.md)
