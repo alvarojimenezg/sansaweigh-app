@@ -10,9 +10,11 @@ rules, persists the weighing history in MongoDB, and caches scale specifications
 with a resilient fallback to an external specs API.
 
 It is a university workshop project ("TallerHDD"). The authoritative spec is
-`TallerHDD.pdf`; `Plan_TallerHDD.md` is the phased implementation plan and the best
-single source for *intended* behavior — but note the code has diverged from it in places
-(see "Plan vs. reality" below). Trust the code over the plan when they disagree.
+`TallerHDD.pdf`; `Plan_TallerHDD.md` is the phased implementation plan. The plan still uses
+the old base package `cl.usm.sansaweigh` and describes some features differently from how
+they were eventually built — **trust the code over the plan when they disagree.** All phases
+(domain, persistence, Redis/external integration, business rules, REST API, exception
+handling, docs, and tests) are now implemented.
 
 ## Build & run
 
@@ -23,9 +25,13 @@ The project uses the Maven wrapper (`mvnw` / `mvnw.cmd`). Java 17+.
 ./mvnw spring-boot:run        # run the app (port 8080)
 ./mvnw test                   # run all tests
 ./mvnw test -Dtest=ClassName#methodName   # run a single test
+./mvnw verify                 # tests + JaCoCo coverage gate (fails under 90% line coverage)
 ```
 
 On Windows use `mvnw.cmd` instead of `./mvnw`.
+
+API docs (app running): **Swagger UI** at `/swagger-ui.html`, **OpenAPI JSON** at `/v3/api-docs`.
+Long-form docs live in `docs/` as a **Docsify** site (`docsify serve docs`).
 
 ### Required infrastructure
 
@@ -90,29 +96,53 @@ When changing weight thresholds, the conversion ratio, or the state machine, edi
 `getDefaultSpecification()` if it expired or was never seeded). `DefaultSpecificationSeeder`
 seeds that default at startup.
 
+### HTTP error mapping — `GlobalExceptionHandler`
+
+`exceptions/GlobalExceptionHandler` (`@RestControllerAdvice`) is the single place that maps
+exceptions to HTTP status with a uniform JSON body (`timestamp`, `status`, `error`, `message`):
+`IllegalWeighingStateException` / `BusinessRuleException` / `IllegalArgumentException` /
+`@Valid` failures → **400**; `RegistroNoEncontradoException` → **404**;
+`ExternalScaleUnavailableException` → **503**. The custom exceptions are plain
+`RuntimeException`s with **no `@ResponseStatus`** — their HTTP code comes only from this
+handler, so add new mappings here rather than annotating the exceptions.
+
 ## Conventions
 
 - **Spanish** is used throughout domain names, comments, and exception messages
   (`RegistroPesaje`, `validarRestriccionTiempo`, etc.). Match this when adding code.
-- **Lombok** for boilerplate (`@Getter/@Setter`, `@Slf4j`, `@Data/@Builder`). It's an
-  annotation-processor path in `pom.xml`; keep it out of the Spring Boot fat jar.
+- **Lombok** for boilerplate. The standing convention is **`@Getter/@Setter/@ToString` +
+  `@NoArgsConstructor/@AllArgsConstructor`** — **not** `@Data`/`@Builder` (nothing uses
+  `.builder()` or generated `equals`/`hashCode`). It's an annotation-processor path in
+  `pom.xml`; keep it out of the Spring Boot fat jar.
 - Services follow an **interface + `impl`** split (`services/Foo.java`,
   `services/impl/FooImpl.java`).
 - Redis uses **Jedis** deliberately (`spring.data.redis.client-type=jedis`,
   `JedisConnectionFactory` in `RedisConfig`).
 
-## Plan vs. reality — known gaps
+## Testing
 
-The plan describes features the code does **not yet implement**. Don't assume these exist:
+Tests live under `src/test/java/...` mirroring the main package layout. Stack: **JUnit
+Jupiter 6 + Mockito 5 + AssertJ** (all transitive via the `*-test` starters; no explicit
+deps needed). Services are tested with `@Mock`/`@InjectMocks`; controllers with
+`@WebMvcTest` + MockMvc + `@MockitoBean` (note: `@MockBean` is gone in Spring Boot 4, use
+`@MockitoBean`). **JaCoCo** enforces **≥90% line coverage** on `mvnw verify`; the report is
+at `target/site/jacoco/index.html`. The bootstrap class and `integration/ExternalScaleClient`
+are excluded from the coverage metric in `pom.xml` (the client's `RestClient` is built
+internally and is covered only indirectly via the service fallback).
 
-- **No `GlobalExceptionHandler` / `@RestControllerAdvice`.** The custom exceptions
-  (`IllegalWeighingStateException`, `BusinessRuleException`, `ExternalScaleUnavailableException`)
-  are plain `RuntimeException`s with **no `@ResponseStatus`**, so they currently surface as
-  HTTP 500, not the 400 the plan specifies. Adding proper HTTP mapping is open work.
-- `RegistroPesajeServiceImpl.updateEstado` throws a bare `RuntimeException` when a record
-  is not found (no dedicated not-found exception / 404).
-- Tests are largely deferred (the plan targets ≥90% coverage in a later phase); only the
-  default Spring Boot context test exists.
+## Spring Boot 4 gotchas
+
+- **Jackson 3, not 2.** Spring Boot 4 ships Jackson 3 (`tools.jackson`). Jackson-2 helpers
+  like `GenericJackson2JsonRedisSerializer` throw `NoClassDefFoundError` at runtime — avoid
+  them (`RedisConfig` uses only `StringRedisSerializer` for keys).
+- **Test slices moved packages.** `@WebMvcTest` is now
+  `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`, not the old
+  `...boot.test.autoconfigure.web.servlet` path.
+- **API docs use springdoc 3.0.x** (the only line compatible with Spring Boot 4). **Do not
+  re-add `spring-boot-starter-data-rest`** — it auto-exposes the repositories and makes
+  springdoc throw a `NullPointerException` when generating `/v3/api-docs`.
+- Editing `pom.xml` dependencies is **not** picked up by `spring-boot-devtools` hot restart;
+  stop and relaunch the app fully.
 
 ## Collaboration note
 

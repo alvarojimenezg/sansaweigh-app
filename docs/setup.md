@@ -54,12 +54,12 @@ En Windows usa `mvnw.cmd` en vez de `./mvnw`.
 Desde la carpeta `docs/`:
 
 ```bash
-# opción 1: con docsify-cli
+# opción 1: con docsify-cli (puerto 3001 para no chocar con Mockoon en el 3000)
 npm i -g docsify-cli
-docsify serve docs
+docsify serve docs -p 3001
 
 # opción 2: cualquier servidor estático
 python -m http.server 3001 --directory docs
 ```
 
-Luego abre <http://localhost:3000> (docsify-cli) o el puerto que hayas elegido.
+Luego abre <http://localhost:3001>. (Se usa el 3001 porque Mockoon ocupa el 3000.)
